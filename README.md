@@ -1,7 +1,5 @@
 # Website Pendaftaran Coconut Open Class
 
-Deskripsi singkat tentang proyek Anda. Jelaskan tujuan dari proyek ini dan fitur-fitur utama yang disediakan.
-
 ## Prasyarat
 
 Pastikan Anda sudah menginstal prasyarat berikut:
