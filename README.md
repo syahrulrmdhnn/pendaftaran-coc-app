@@ -18,14 +18,6 @@ Pastikan Anda sudah menginstal prasyarat berikut:
 
 2. Buat file `.env` di root folder proyek Anda. File ini digunakan untuk menyimpan konfigurasi lingkungan seperti database, API keys, dan sebagainya.
 
-    Contoh isi `.env`:
-
-    ```env
-    APP_PORT = 5000
-    APP_NAMA = coc02
-    APP_KUNCI = coconut@013
-    ```
-
 3. Instal dependensi yang diperlukan:
 
     ```bash
