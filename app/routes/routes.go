@@ -29,5 +29,7 @@ func Routes() {
 	r.HandleFunc("/api/{pendaftar}", controllers.OrangHandler).Methods("GET")
 	r.HandleFunc("/api/get/{nama}/{kunci}", controllers.AmbilHandler).Methods("GET")
 
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+
 	http.Handle("/", corsMiddleware(r))
 }
