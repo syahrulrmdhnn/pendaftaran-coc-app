@@ -30,6 +30,7 @@ func AddHandler(w http.ResponseWriter, r *http.Request) {
 	namaLengkap := r.FormValue("nama_lengkap")
 	email := r.FormValue("email")
 	telepon := r.FormValue("telepon")
+	framework := r.FormValue("framework")
 
 	// Validasi input
 	if len(namaLengkap) < 2 {
@@ -83,6 +84,7 @@ func AddHandler(w http.ResponseWriter, r *http.Request) {
 		Email:         email,
 		NoTelp:        telepon,
 		BuktiTransfer: fmt.Sprintf("bukti_tf%s.jpg", email),
+		Framework: framework,
 	}
 	if err := config.DB.Create(&pendaftar).Error; err != nil {
 		http.Error(w, `{"message":"Gagal menyimpan data ke database"}`, http.StatusInternalServerError)

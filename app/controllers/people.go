@@ -15,12 +15,12 @@ func OrangHandler(w http.ResponseWriter, r *http.Request) {
 
 	var pendaftar models.Pendaftar
 	if err := config.DB.Where("email = ?", email).First(&pendaftar).Error; err != nil {
-		response := fmt.Sprintf(`{"nama_lengkap":"%s","email":"Tidak ada","telepon":"Tidak ada","bukti_tf":"Tidak ada","status":"Tidak Terdaftar"}`, email)
+		response := fmt.Sprintf(`{"nama_lengkap":"%s","email":"Tidak ada","telepon":"Tidak ada","bukti_tf":"Tidak ada", framework:"Tidak" "status":"Tidak Terdaftar"}`, email)
 		w.Write([]byte(response))
 		return
 	}
 
-	response := fmt.Sprintf(`{"nama_lengkap":"%s","email":"%s","telepon":"%s","bukti_tf":"%s","status":"Berhasil Mendaftar"}`,
-		pendaftar.NamaLengkap, pendaftar.Email, pendaftar.NoTelp, pendaftar.BuktiTransfer)
+	response := fmt.Sprintf(`{"nama_lengkap":"%s","email":"%s","telepon":"%s","bukti_tf":"%s", framework:"%s" "status":"Berhasil Mendaftar"}`,
+		pendaftar.NamaLengkap, pendaftar.Email, pendaftar.NoTelp, pendaftar.BuktiTransfer, pendaftar.Framework)
 	w.Write([]byte(response))
 }

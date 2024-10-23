@@ -7,4 +7,6 @@ type Pendaftar struct {
 	Email         string `gorm:"unique;not null"`
 	NoTelp        string `gorm:"not null"`
 	BuktiTransfer string
+	Framework 	  string
+
 }

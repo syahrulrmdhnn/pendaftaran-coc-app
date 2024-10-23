@@ -7,9 +7,15 @@ function scrollToDownload() {
     }
 }
 
+document.querySelector('#gambarInput').addEventListener('change', function (e) {
+    var fileName = e.target.files[0].name;
+    var nextSibling = e.target.nextElementSibling;
+    nextSibling.innerText = fileName;
+});
+
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.querySelector('form');
-    const endpoint = `http://localhost:5000/api/add`; // Sesuaikan dengan endpoint yang sesuai
+    const endpoint = `https://pendaftaran-coc-api-production.up.railway.app/api/add`; // Sesuaikan dengan endpoint yang sesuai
 
     form.addEventListener('submit', function (event) {
         event.preventDefault(); // Menghindari form submit default
@@ -19,6 +25,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const email = document.getElementById('email').value;
         const telepon = document.getElementById("teleponInput").value;
         const fileInput = document.getElementById('gambarInput').files[0]; // Mengambil file yang diunggah
+        
+        // Cek apakah user memilih framework JS atau belum
+        let framework = '';
+        if (document.getElementById('jsFrameworkYa').checked) {
+            framework = document.getElementById("framework").value;
+        } else {
+            framework = 'belum pernah menggunakan framework js';
+        }
 
         // Data yang akan dikirim (termasuk file)
         const formData = new FormData();
@@ -26,6 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('email', email);
         formData.append('telepon', telepon);
         formData.append('file', fileInput);
+        formData.append('framework', framework);
 
         // Konfigurasi untuk fetch request
         const requestOptions = {
@@ -56,3 +71,11 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     });
 });
+
+function tampilkanFramework() {
+    document.getElementById('frameworkForm').style.display = 'block';
+}
+
+function sembunyikanFramework() {
+    document.getElementById('frameworkForm').style.display = 'none';
+}
