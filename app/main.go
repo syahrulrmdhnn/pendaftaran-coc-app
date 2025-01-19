@@ -3,28 +3,64 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"os"
 
-	"github.com/joho/godotenv"
+	"github.com/julienschmidt/httprouter"
 	"github.com/syrlramadhan/pendaftaran-coc/config"
-	"github.com/syrlramadhan/pendaftaran-coc/routes"
+	"github.com/syrlramadhan/pendaftaran-coc/controller"
+	"github.com/syrlramadhan/pendaftaran-coc/repository"
+	"github.com/syrlramadhan/pendaftaran-coc/service"
 )
 
 func main() {
-	config.InitDB()
-	routes.Routes()
+	fmt.Println("listened and serve to port", config.AppPort)
 
-	err := godotenv.Load()
+	sqlite, err := config.ConnectToDatabase()
 	if err != nil {
-		fmt.Printf("Error loading .env file: %v", err)
+		panic(err)
 	}
 
-	port := os.Getenv("APP_PORT")
+	pendaftarRepository := repository.NewPendaftarRepository()
+	pendaftarService := service.NewPendaftarService(pendaftarRepository, sqlite)
+	pendaftarController := controller.NewPendaftarController(pendaftarService)
 
-	fmt.Println("Server running on port", port)
-	server(":"+port)
+	router := httprouter.New()
+
+	// add
+	router.POST("/api/pendaftar/add", pendaftarController.CreatePendaftar)
+
+	//login
+	router.POST("/api/admin/login", pendaftarController.LoginAdmin)
+
+	//get
+	router.GET("/api/pendaftar/get", pendaftarController.ReadPendaftar)
+
+	//serve file
+	router.ServeFiles("/api/pendaftar/uploads/*filepath", http.Dir("uploads"))
+
+	handler := corsMiddleware(router)
+
+	server := http.Server{
+		Addr: fmt.Sprintf(":%s", config.AppPort),
+		Handler: handler,
+	}
+
+	errServe := server.ListenAndServe()
+	if errServe != nil {
+		panic(errServe)
+	}
 }
 
-func server(addr string) {
-	http.ListenAndServe(addr, nil)
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
