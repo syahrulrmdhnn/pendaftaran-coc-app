@@ -3,24 +3,13 @@ package config
 import (
 	"database/sql"
 	"fmt"
-	"os"
 	"time"
 
-	_ "github.com/mattn/go-sqlite3"
-	"github.com/joho/godotenv"
+	_ "modernc.org/sqlite"
 )
 
-var errEnv = godotenv.Load()
-var AppPort = os.Getenv("APP_PORT")
-var UserAdmin = os.Getenv("USER_ADMIN")
-var PassAdmin = os.Getenv("PASS_ADMIN")
-
 func ConnectToDatabase() (*sql.DB, error) {
-	if errEnv != nil {
-		return nil, fmt.Errorf("failed to load file .env: %v", errEnv)
-	}
-
-	db, err := sql.Open("sqlite3", "./pendaftar.db")
+	db, err := sql.Open("sqlite", "./database/pendaftar.db")
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %v", err)
 	}

@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/joho/godotenv"
 	"github.com/syrlramadhan/pendaftaran-coc/config"
 	"github.com/syrlramadhan/pendaftaran-coc/controller"
 	"github.com/syrlramadhan/pendaftaran-coc/repository"
@@ -12,7 +14,12 @@ import (
 )
 
 func main() {
-	fmt.Println("listened and serve to port", config.AppPort)
+	errEnv := godotenv.Load()
+	if errEnv != nil {
+		panic(errEnv)
+	}
+	appPort := os.Getenv("APP_PORT")
+	fmt.Println("listened and serve to port", appPort)
 
 	sqlite, err := config.ConnectToDatabase()
 	if err != nil {
@@ -37,10 +44,13 @@ func main() {
 	//serve file
 	router.ServeFiles("/api/pendaftar/uploads/*filepath", http.Dir("uploads"))
 
+	//download db
+	router.ServeFiles("/api/pendaftar/database/*filepath", http.Dir("database"))
+
 	handler := corsMiddleware(router)
 
 	server := http.Server{
-		Addr: fmt.Sprintf(":%s", config.AppPort),
+		Addr:    fmt.Sprintf(":%s", appPort),
 		Handler: handler,
 	}
 

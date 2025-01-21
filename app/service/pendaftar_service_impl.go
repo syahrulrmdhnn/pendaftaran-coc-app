@@ -4,15 +4,16 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"os"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
-	"github.com/syrlramadhan/pendaftaran-coc/config"
+	"github.com/joho/godotenv"
 	"github.com/syrlramadhan/pendaftaran-coc/dto"
 	"github.com/syrlramadhan/pendaftaran-coc/model"
 	"github.com/syrlramadhan/pendaftaran-coc/repository"
 	"github.com/syrlramadhan/pendaftaran-coc/util"
-	"github.com/dgrijalva/jwt-go"
 )
 
 var jwtKey = []byte("secret_key")
@@ -84,12 +85,18 @@ func (p *PendaftarServiceImpl) GenerateJWT(username string) (string, error) {
 }
 
 func (p *PendaftarServiceImpl) LoginAdmin(ctx context.Context, adminRequest dto.AdminRequest) (string, error) {
+	errEnv := godotenv.Load()
+	if errEnv != nil {
+		panic(errEnv)
+	}
+	userAdmin := os.Getenv("USER_ADMIN")
+	passAdmin := os.Getenv("PASS_ADMIN")
 	tx, err := p.DB.Begin()
 	if err != nil {
 		return "", fmt.Errorf("failed to start transaction: %v", err)
 	}
 	defer util.CommitOrRollBack(tx)
-	if config.UserAdmin == adminRequest.User && config.PassAdmin == adminRequest.Pass {
+	if userAdmin == adminRequest.User && passAdmin == adminRequest.Pass {
 		fmt.Println("Login berhasil!")
 	} else {
 		return "", fmt.Errorf("invalid email or password")
