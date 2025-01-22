@@ -14,6 +14,7 @@ import (
 	"github.com/syrlramadhan/pendaftaran-coc/model"
 	"github.com/syrlramadhan/pendaftaran-coc/repository"
 	"github.com/syrlramadhan/pendaftaran-coc/util"
+	"github.com/syrlramadhan/pendaftaran-coc/validation"
 )
 
 var jwtKey = []byte("secret_key")
@@ -37,6 +38,8 @@ func (p *PendaftarServiceImpl) CreatePendaftar(ctx context.Context, pendaftarReq
 	}
 	defer util.CommitOrRollBack(tx)
 
+	validation.ValidateIfEmailExist(ctx, tx, p.PendaftarRepository, pendaftarRequest.Email)
+
 	pendaftar := model.Pendaftar{
 		Id:            uuid.New().String(),
 		NamaLengkap:   pendaftarRequest.NamaLengkap,
@@ -45,6 +48,9 @@ func (p *PendaftarServiceImpl) CreatePendaftar(ctx context.Context, pendaftarReq
 		BuktiTransfer: pendaftarRequest.BuktiTransfer,
 		Framework:     pendaftarRequest.Framework,
 	}
+
+	validation.ValidateIfNull(pendaftar)
+
 	createPendaftar, err := p.PendaftarRepository.CreatePendaftar(ctx, tx, pendaftar)
 	if err != nil {
 		panic(err)

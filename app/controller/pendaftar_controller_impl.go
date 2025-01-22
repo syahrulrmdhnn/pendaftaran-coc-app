@@ -10,6 +10,7 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/syrlramadhan/pendaftaran-coc/dto"
+	"github.com/syrlramadhan/pendaftaran-coc/exception"
 	"github.com/syrlramadhan/pendaftaran-coc/service"
 	"github.com/syrlramadhan/pendaftaran-coc/util"
 )
@@ -24,11 +25,42 @@ func NewPendaftarController(pendaftarService service.PendaftarService) Pendaftar
 	}
 }
 
+func writeJSONError(w http.ResponseWriter, code int, message string) {
+	response := dto.ResponseError{
+		Code:    code,
+		Message: message,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	json.NewEncoder(w).Encode(response)
+}
+
 func (p *PendaftarControllerImpl) CreatePendaftar(writter http.ResponseWriter, request *http.Request, params httprouter.Params) {
+	defer func() {
+		if r := recover(); r != nil {
+			var response dto.ResponseError
+			switch err := r.(type) {
+			case exception.BadRequestHandler:
+				writter.WriteHeader(http.StatusBadRequest)
+				response = dto.ResponseError{
+					Code:    http.StatusBadRequest,
+					Message: err.Error(),
+				}
+			default:
+				writter.WriteHeader(http.StatusInternalServerError)
+				response = dto.ResponseError{
+					Code:    http.StatusInternalServerError,
+					Message: "internal server error",
+				}
+			}
+			util.WriteToResponseBody(writter, response)
+		}
+	}()
+
 	pendaftarRequest := dto.PendaftarRequest{}
 	err := request.ParseMultipartForm(10 << 20)
 	if err != nil {
-		http.Error(writter, "Unable to parse form", http.StatusBadRequest)
+		writeJSONError(writter, http.StatusBadRequest, "unable to parse form")
 		return
 	}
 	pendaftarRequest = dto.PendaftarRequest{
@@ -39,7 +71,7 @@ func (p *PendaftarControllerImpl) CreatePendaftar(writter http.ResponseWriter, r
 	}
 	file, handler, err := request.FormFile("bukti-transfer")
 	if err != nil {
-		http.Error(writter, "Failed to read file", http.StatusBadRequest)
+		writeJSONError(writter, http.StatusBadRequest, "failed to read file")
 		return
 	}
 	defer file.Close()
@@ -66,13 +98,13 @@ func (p *PendaftarControllerImpl) CreatePendaftar(writter http.ResponseWriter, r
 	pendaftarRequest.BuktiTransfer = handler.Filename
 
 	responseDTO := p.PendaftarService.CreatePendaftar(request.Context(), pendaftarRequest)
+
 	response := dto.ResponseList{
 		Code:    http.StatusOK,
-		Message: "success to add pendaftar",
+		Message: "registration successful",
 		Data:    responseDTO,
 	}
 
-	// writter.Header().Set("Content-Type", "application/json")
 	util.WriteToResponseBody(writter, response)
 }
 
@@ -84,7 +116,6 @@ func (p *PendaftarControllerImpl) ReadPendaftar(writter http.ResponseWriter, req
 		Data:    responseDTO,
 	}
 
-	// writter.Header().Set("Content-Type", "application/json")
 	util.WriteToResponseBody(writter, response)
 }
 
@@ -93,13 +124,13 @@ func (p *PendaftarControllerImpl) LoginAdmin(w http.ResponseWriter, r *http.Requ
 
 	err := json.NewDecoder(r.Body).Decode(&adminRequest)
 	if err != nil {
-		http.Error(w, "Invalid input", http.StatusBadRequest)
+		writeJSONError(w, http.StatusBadRequest, "invalid input")
 		return
 	}
 
 	token, err := p.PendaftarService.LoginAdmin(r.Context(), adminRequest)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
+		writeJSONError(w, http.StatusUnauthorized, err.Error())
 		return
 	}
 

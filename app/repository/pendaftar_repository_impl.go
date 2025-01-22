@@ -46,3 +46,14 @@ func (p *PendaftarRepositoryImpl) ReadPendaftar(ctx context.Context, tx *sql.Tx)
 
 	return pendaftars
 }
+
+func (p *PendaftarRepositoryImpl) EmailExists(ctx context.Context, tx *sql.Tx, email string) bool {
+	var exists bool
+	query := `SELECT COUNT(1) FROM pendaftars WHERE email = ?`
+	err := tx.QueryRowContext(ctx, query, email).Scan(&exists)
+	if err != nil {
+		panic(err)
+	}
+
+	return exists
+}

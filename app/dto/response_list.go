@@ -12,3 +12,8 @@ type ResponseToken struct {
 	Token   string `json:"token"`
 	Message string `json:"message"`
 }
+
+type ResponseError struct {
+	Code    int         `json:"code"`
+	Message string      `json:"message"`
+}
