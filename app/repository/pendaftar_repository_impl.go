@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/syrlramadhan/pendaftaran-coc/model"
+	"github.com/syrlramadhan/pendaftaran-coc/app/model"
 )
 
 type PendaftarRepositoryImpl struct {

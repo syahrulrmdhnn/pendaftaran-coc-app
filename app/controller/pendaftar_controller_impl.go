@@ -1,89 +1,67 @@
 package controller
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
+	"text/template"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/syrlramadhan/pendaftaran-coc/dto"
-	"github.com/syrlramadhan/pendaftaran-coc/exception"
-	"github.com/syrlramadhan/pendaftaran-coc/service"
-	"github.com/syrlramadhan/pendaftaran-coc/util"
+	"github.com/syrlramadhan/pendaftaran-coc/app/model"
+	"github.com/syrlramadhan/pendaftaran-coc/app/service"
 )
 
-type PendaftarControllerImpl struct {
+type pendaftarControllerImpl struct {
 	PendaftarService service.PendaftarService
 }
 
 func NewPendaftarController(pendaftarService service.PendaftarService) PendaftarController {
-	return &PendaftarControllerImpl{
+	return &pendaftarControllerImpl{
 		PendaftarService: pendaftarService,
 	}
 }
 
-func writeJSONError(w http.ResponseWriter, code int, message string) {
-	response := dto.ResponseError{
-		Code:    code,
-		Message: message,
+// RenderTemplate implements PendaftarController.
+func (p *pendaftarControllerImpl) RenderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
+	tmplPath := "templates/" + tmpl
+	funcMap := template.FuncMap{
+		"add": func(a, b int) int { return a + b },
 	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-	json.NewEncoder(w).Encode(response)
+	t, err := template.New(tmpl).Funcs(funcMap).ParseFiles(tmplPath)
+	if err != nil {
+		http.Error(w, "Template tidak ditemukan: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	t.Execute(w, data)
 }
 
-func (p *PendaftarControllerImpl) CreatePendaftar(writter http.ResponseWriter, request *http.Request, params httprouter.Params) {
-	defer func() {
-		if r := recover(); r != nil {
-			var response dto.ResponseError
-			switch err := r.(type) {
-			case exception.BadRequestHandler:
-				writter.WriteHeader(http.StatusBadRequest)
-				response = dto.ResponseError{
-					Code:    http.StatusBadRequest,
-					Message: err.Error(),
-				}
-			default:
-				writter.WriteHeader(http.StatusInternalServerError)
-				response = dto.ResponseError{
-					Code:    http.StatusInternalServerError,
-					Message: "internal server error",
-				}
-			}
-			util.WriteToResponseBody(writter, response)
-		}
-	}()
-
-	pendaftarRequest := dto.PendaftarRequest{}
+// CreatePendaftar implements PendaftarController.
+func (p *pendaftarControllerImpl) CreatePendaftar(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
 	err := request.ParseMultipartForm(10 << 20)
 	if err != nil {
-		writeJSONError(writter, http.StatusBadRequest, "unable to parse form")
-		return
+		http.Error(writer, "unable to parse form", http.StatusBadRequest)
+		panic(err)
 	}
-	pendaftarRequest = dto.PendaftarRequest{
-		NamaLengkap: request.FormValue("nama-lengkap"),
-		Email: request.FormValue("email"),
-		NoTelp: request.FormValue("no-telp"),
-		Framework: request.FormValue("framework"),
-	}
-	file, handler, err := request.FormFile("bukti-transfer")
+	namaLengkap := request.FormValue("nama-lengkap")
+	email := request.FormValue("email")
+	noTelp := request.FormValue("no-telp")
+	framework := request.FormValue("framework")
+	file, header, err := request.FormFile("buktitf")
 	if err != nil {
-		writeJSONError(writter, http.StatusBadRequest, "failed to read file")
-		return
+		panic(err)
 	}
 	defer file.Close()
 
-	fileName := fmt.Sprintf("%s.jpeg", pendaftarRequest.Email)
-	handler.Filename = fileName
-	uploadDir := "./uploads"
+	fileName := fmt.Sprintf("%s.jpeg", email)
+	header.Filename = fileName
+	uploadDir := "assets/buktitf/"
 	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
 		os.Mkdir(uploadDir, os.ModePerm)
 	}
 
-	filePath := filepath.Join(uploadDir, handler.Filename)
+	filePath := filepath.Join(uploadDir, header.Filename)
 	out, err := os.Create(filePath)
 	if err != nil {
 		panic(err)
@@ -95,52 +73,49 @@ func (p *PendaftarControllerImpl) CreatePendaftar(writter http.ResponseWriter, r
 		panic(err)
 	}
 
-	pendaftarRequest.BuktiTransfer = handler.Filename
+	buktiTransfer := header.Filename
 
-	responseDTO := p.PendaftarService.CreatePendaftar(request.Context(), pendaftarRequest)
-
-	response := dto.ResponseList{
-		Code:    http.StatusOK,
-		Message: "registration successful",
-		Data:    responseDTO,
+	pendaftar := model.Pendaftar{
+		NamaLengkap:   namaLengkap,
+		Email:         email,
+		NoTelp:        noTelp,
+		BuktiTransfer: buktiTransfer,
+		Framework:     framework,
 	}
 
-	util.WriteToResponseBody(writter, response)
+	p.PendaftarService.CreatePendaftar(request.Context(), pendaftar)
+	http.Redirect(writer, request, "/", http.StatusSeeOther)
 }
 
-func (p *PendaftarControllerImpl) ReadPendaftar(writter http.ResponseWriter, request *http.Request, params httprouter.Params) {
-	responseDTO := p.PendaftarService.ReadPendaftar(request.Context())
-	response := dto.ResponseList{
-		Code:    http.StatusOK,
-		Message: "success to get data",
-		Data:    responseDTO,
+// ReadPendaftar implements PendaftarController.
+func (p *pendaftarControllerImpl) ReadPendaftar(request *http.Request, params httprouter.Params) ([]model.Pendaftar, error) {
+	pendaftar, err := p.PendaftarService.ReadPendaftar(request.Context())
+	if err != nil {
+		panic(err)
 	}
 
-	util.WriteToResponseBody(writter, response)
+	return pendaftar, nil
 }
 
-func (p *PendaftarControllerImpl) LoginAdmin(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	var adminRequest dto.AdminRequest
+// LoginAdmin implements PendaftarController.
+func (p *pendaftarControllerImpl) LoginAdmin(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+	user := request.FormValue("username")
+	pass := request.FormValue("password")
 
-	err := json.NewDecoder(r.Body).Decode(&adminRequest)
+	token, err := p.PendaftarService.LoginAdmin(request.Context(), user, pass)
 	if err != nil {
-		writeJSONError(w, http.StatusBadRequest, "invalid input")
-		return
+		panic(err)
 	}
 
-	token, err := p.PendaftarService.LoginAdmin(r.Context(), adminRequest)
-	if err != nil {
-		writeJSONError(w, http.StatusUnauthorized, err.Error())
-		return
-	}
+	http.SetCookie(writer, &http.Cookie{
+		Name:     "token",
+		Value:    token,
+		Path:     "/",
+		HttpOnly: true, // Agar lebih aman
+		MaxAge: 600,
+	})
 
-	response := dto.ResponseToken{
-		Code:    http.StatusOK,
-		Status:  "OK",
-		Token:   token,
-		Message: "token generate successfully",
-	}
-
-	w.Header().Set("Content-.Type", "application/json")
-	util.WriteToResponseBody(w, response)
+	// data := map[string]string{"Token": token}
+	http.Redirect(writer, request, "/pendaftar", http.StatusSeeOther)
+	// p.RenderTemplate(writer, "pendaftar.html", data)
 }

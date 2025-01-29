@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/syrlramadhan/pendaftaran-coc/model"
+	"github.com/syrlramadhan/pendaftaran-coc/app/model"
 )
 
 type PendaftarRepository interface {

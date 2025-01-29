@@ -9,7 +9,7 @@ import (
 )
 
 func ConnectToDatabase() (*sql.DB, error) {
-	db, err := sql.Open("sqlite", "./database/pendaftar.db")
+	db, err := sql.Open("sqlite", "database/pendaftar.db")
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %v", err)
 	}
