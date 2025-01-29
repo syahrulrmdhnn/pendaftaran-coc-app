@@ -3,14 +3,21 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 
+	"github.com/joho/godotenv"
 	"github.com/julienschmidt/httprouter"
 	"github.com/syrlramadhan/pendaftaran-coc/app"
 	"github.com/syrlramadhan/pendaftaran-coc/app/config"
 )
 
 func main() {
-	fmt.Println("Success to connect")
+	err := godotenv.Load()
+	if err != nil {
+		panic(err)
+	}
+	port := os.Getenv("APP_PORT")
+	fmt.Println("runnig on port", port)
 
 	sqlite, err := config.ConnectToDatabase()
 	if err != nil {
@@ -25,7 +32,7 @@ func main() {
 	handler := app.Routes(router, sqlite)
 
 	server := http.Server{
-		Addr: ":9000",
+		Addr:    ":" + port,
 		Handler: handler,
 	}
 
