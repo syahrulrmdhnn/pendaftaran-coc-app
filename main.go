@@ -9,6 +9,9 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/syrlramadhan/pendaftaran-coc/app"
 	"github.com/syrlramadhan/pendaftaran-coc/app/config"
+	"github.com/syrlramadhan/pendaftaran-coc/app/midleware"
+	"github.com/syrlramadhan/pendaftaran-coc/app/repository"
+	"github.com/syrlramadhan/pendaftaran-coc/app/service"
 )
 
 func main() {
@@ -24,10 +27,15 @@ func main() {
 		panic(err)
 	}
 
+	pendaftarRepository := repository.NewPendaftarRepository()
+	pendaftarService := service.NewPendaftarServiceImpl(pendaftarRepository, sqlite)
+
 	router := httprouter.New()
 
 	router.ServeFiles("/assets/*filepath", http.Dir("assets"))
-	router.ServeFiles("/database/*filepath", http.Dir("database"))
+	router.GET("/database/*filepath", midleware.AuthMiddleware(func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+		http.StripPrefix("/database/", http.FileServer(http.Dir("database"))).ServeHTTP(w, r)
+	}, pendaftarService))
 
 	handler := app.Routes(router, sqlite)
 
