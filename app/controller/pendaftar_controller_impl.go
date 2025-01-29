@@ -41,8 +41,9 @@ func (p *pendaftarControllerImpl) RenderTemplate(w http.ResponseWriter, tmpl str
 func (p *pendaftarControllerImpl) CreatePendaftar(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
 	err := request.ParseMultipartForm(10 << 20)
 	if err != nil {
-		http.Error(writer, "unable to parse form", http.StatusBadRequest)
-		panic(err)
+		// http.Error(writer, "unable to parse form", http.StatusBadRequest)
+		http.Redirect(writer, request, "/form", http.StatusSeeOther)
+		return
 	}
 	namaLengkap := request.FormValue("nama-lengkap")
 	email := request.FormValue("email")
@@ -50,7 +51,8 @@ func (p *pendaftarControllerImpl) CreatePendaftar(writer http.ResponseWriter, re
 	framework := request.FormValue("framework")
 	file, header, err := request.FormFile("buktitf")
 	if err != nil {
-		panic(err)
+		http.Redirect(writer, request, "/form", http.StatusSeeOther)
+		return
 	}
 	defer file.Close()
 
@@ -64,13 +66,15 @@ func (p *pendaftarControllerImpl) CreatePendaftar(writer http.ResponseWriter, re
 	filePath := filepath.Join(uploadDir, header.Filename)
 	out, err := os.Create(filePath)
 	if err != nil {
-		panic(err)
+		http.Redirect(writer, request, "/form", http.StatusSeeOther)
+		return
 	}
 	defer out.Close()
 
 	_, err = io.Copy(out, file)
 	if err != nil {
-		panic(err)
+		http.Redirect(writer, request, "/form", http.StatusSeeOther)
+		return
 	}
 
 	buktiTransfer := header.Filename
@@ -104,7 +108,8 @@ func (p *pendaftarControllerImpl) LoginAdmin(writer http.ResponseWriter, request
 
 	token, err := p.PendaftarService.LoginAdmin(request.Context(), user, pass)
 	if err != nil {
-		panic(err)
+		http.Redirect(writer, request, "/login", http.StatusSeeOther)
+		return
 	}
 
 	http.SetCookie(writer, &http.Cookie{

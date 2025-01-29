@@ -19,7 +19,6 @@ func AuthMiddleware(next httprouter.Handle, authService service.PendaftarService
 		} else {
 			cookie, err := r.Cookie("token")
 			if err != nil {
-				// http.Error(w, "Unauthorized: Token tidak ditemukan", http.StatusUnauthorized)
 				http.Redirect(w, r, "/login", http.StatusSeeOther)
 				return
 			}

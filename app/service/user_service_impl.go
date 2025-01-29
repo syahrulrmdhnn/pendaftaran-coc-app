@@ -10,7 +10,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
-	// "github.com/joho/godotenv"
+	"github.com/joho/godotenv"
 	"github.com/syrlramadhan/pendaftaran-coc/app/model"
 	"github.com/syrlramadhan/pendaftaran-coc/app/repository"
 )
@@ -99,10 +99,10 @@ func (pendaftarService *PendaftarServiceImpl) GenerateJWT(username string) (stri
 
 // LoginAdmin implements PendaftarService.
 func (pendaftarService *PendaftarServiceImpl) LoginAdmin(ctx context.Context, user string, pass string) (string, error) {
-	// errEnv := godotenv.Load()
-	// if errEnv != nil {
-	// 	panic(errEnv)
-	// }
+	errEnv := godotenv.Load()
+	if errEnv != nil {
+		panic(errEnv)
+	}
 	userAdmin := os.Getenv("USER_ADMIN")
 	passAdmin := os.Getenv("PASS_ADMIN")
 	tx, err := pendaftarService.DB.Begin()
@@ -113,7 +113,7 @@ func (pendaftarService *PendaftarServiceImpl) LoginAdmin(ctx context.Context, us
 	if userAdmin == user && passAdmin == pass {
 		fmt.Println("Login berhasil!")
 	} else {
-		return "", fmt.Errorf("invalid email or password")
+		return "", fmt.Errorf("invalid username or password")
 	}
 
 	token, err := pendaftarService.GenerateJWT(user)
