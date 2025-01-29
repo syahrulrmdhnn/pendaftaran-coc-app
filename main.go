@@ -5,17 +5,17 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/joho/godotenv"
+	// "github.com/joho/godotenv"
 	"github.com/julienschmidt/httprouter"
 	"github.com/syrlramadhan/pendaftaran-coc/app"
 	"github.com/syrlramadhan/pendaftaran-coc/app/config"
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		panic(err)
-	}
+	// err := godotenv.Load()
+	// if err != nil {
+	// 	panic(err)
+	// }
 	port := os.Getenv("APP_PORT")
 	fmt.Println("runnig on port", port)
 
