@@ -48,7 +48,8 @@ func (p *pendaftarControllerImpl) CreatePendaftar(writer http.ResponseWriter, re
 	namaLengkap := request.FormValue("nama-lengkap")
 	email := request.FormValue("email")
 	noTelp := request.FormValue("no-telp")
-	framework := request.FormValue("framework")
+	kampus := request.FormValue("kampus")
+	alamat := request.FormValue("alamat")
 	file, header, err := request.FormFile("buktitf")
 	if err != nil {
 		http.Redirect(writer, request, "/form", http.StatusSeeOther)
@@ -83,8 +84,9 @@ func (p *pendaftarControllerImpl) CreatePendaftar(writer http.ResponseWriter, re
 		NamaLengkap:   namaLengkap,
 		Email:         email,
 		NoTelp:        noTelp,
+		Kampus:        kampus,
+		Alamat:        alamat,
 		BuktiTransfer: buktiTransfer,
-		Framework:     framework,
 	}
 
 	p.PendaftarService.CreatePendaftar(request.Context(), pendaftar)
@@ -117,7 +119,7 @@ func (p *pendaftarControllerImpl) LoginAdmin(writer http.ResponseWriter, request
 		Value:    token,
 		Path:     "/",
 		HttpOnly: true, // Agar lebih aman
-		MaxAge: 600,
+		MaxAge:   600,
 	})
 
 	// data := map[string]string{"Token": token}

@@ -5,6 +5,7 @@ type Pendaftar struct {
 	NamaLengkap   string
 	Email         string
 	NoTelp        string
+	Kampus        string
+	Alamat        string
 	BuktiTransfer string
-	Framework     string
 }
