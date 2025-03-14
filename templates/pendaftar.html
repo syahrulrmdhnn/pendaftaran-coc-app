@@ -222,16 +222,24 @@
             </div>
         </div>
     </footer>
+
+    <!-- Core JS Files -->
+    <script src="/assets/js/core/jquery.min.js" type="text/javascript"></script>
+    <script src="/assets/js/core/popper.min.js" type="text/javascript"></script>
+    <script src="/assets/js/core/bootstrap.min.js" type="text/javascript"></script>
+    <script src="/assets/js/plugins/perfect-scrollbar.jquery.min.js"></script>
+    <script src="/assets/js/plugins/bootstrap-switch.js"></script>
+    <script src="/assets/js/plugins/nouislider.min.js" type="text/javascript"></script>
+    <script src="/assets/js/plugins/moment.min.js"></script>
+    <script src="/assets/js/plugins/datetimepicker.js" type="text/javascript"></script>
+    <script src="/assets/js/plugins/bootstrap-datepicker.min.js"></script>
+    <script src="/assets/js/argon-design-system.min.js?v=1.2.2" type="text/javascript"></script>
+
+    <script>
+        // Menghitung jumlah baris di tabel (tidak termasuk header)
+        const table = document.getElementById('tbl');
+        const rowCount = table.rows.length - 1; // Kurangi 1 untuk menghilangkan baris header
+        document.getElementById('jumlah').textContent = rowCount;
+    </script>
 </body>
-<!-- Core JS Files -->
-<script src="/assets/js/core/jquery.min.js" type="text/javascript"></script>
-<script src="/assets/js/core/popper.min.js" type="text/javascript"></script>
-<script src="/assets/js/core/bootstrap.min.js" type="text/javascript"></script>
-<script src="/assets/js/plugins/perfect-scrollbar.jquery.min.js"></script>
-<script src="/assets/js/plugins/bootstrap-switch.js"></script>
-<script src="/assets/js/plugins/nouislider.min.js" type="text/javascript"></script>
-<script src="/assets/js/plugins/moment.min.js"></script>
-<script src="/assets/js/plugins/datetimepicker.js" type="text/javascript"></script>
-<script src="/assets/js/plugins/bootstrap-datepicker.min.js"></script>
-<script src="/assets/js/argon-design-system.min.js?v=1.2.2" type="text/javascript"></script>
 </html>
