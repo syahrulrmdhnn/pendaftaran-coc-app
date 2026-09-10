@@ -7,7 +7,7 @@ Pastikan Anda sudah menginstal prasyarat berikut:
 - [Golang](https://golang.org/dl/)
 - [Git](https://git-scm.com/)
 
-## Instalasi
+## Instalasi 
 
 1. Clone repository ini ke komputer Anda:
 
